@@ -9,6 +9,14 @@ const index = path.join(dist, "client", "index.html");
 const worker = path.join(root, "worker", "index.js");
 const hosting = path.join(root, ".openai", "hosting.json");
 
+// The Sites-only artifacts (worker + .openai/hosting.json) are not present on
+// generic hosts like Vercel. Skip the Sites prep step there instead of failing
+// the whole build; it still runs during a real Sites handoff where they exist.
+if (!existsSync(worker) || !existsSync(hosting)) {
+  console.log("Skipping Sites build prep (worker/.openai inputs not present).");
+  process.exit(0);
+}
+
 for (const file of [index, worker, hosting]) {
   if (!existsSync(file)) throw new Error("Missing Sites build input: " + file);
 }
